@@ -1,9 +1,8 @@
 import { StockItems } from "./StockItems.jsx";
+import './StockTable.css';
 
-export function StockTable( { stockData, setStockData, setShowAddStockForm, setFormData, setIsEdit } )
-{
-    function handleEdit(item) 
-    {
+export function StockTable({ stockData, setStockData, setShowAddStockForm, setFormData, setIsEdit }) {
+    function handleEdit(item) {
         setFormData(item);
         setShowAddStockForm(true);
         setIsEdit(true);
@@ -23,35 +22,39 @@ export function StockTable( { stockData, setStockData, setShowAddStockForm, setF
     }
 
     return (
-        <div>
-            <table>
-                    <thead>
+        <div className="table-container">
+            <table className="stock-table">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Product</th>
+                        <th>Stock Qty</th>
+                        <th>Taken Qty</th>
+                        <th>Exp Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {stockData.length === 0 ? (
                         <tr>
-                            <th>S.No</th>
-                            <th>Product</th>
-                            <th>Quantity In Stock</th>
-                            <th>Quantity In Usage</th>
-                            <th>Cost Per Unit</th>
-                            <th>Actions</th>
+                            <td colSpan="10" style={{ textAlign: 'center', padding: '2rem' }}>No items found. Add some stock!</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {stockData.map(
+                    ) : (
+                        stockData.map(
                             (item) => (
-                                    <StockItems 
-                                        key={item.no} 
-                                        item={item} 
-                                        onEdit={handleEdit}
-                                        onDelete={handleDelete}
-                                        onClone={handleClone}
-                                    />
-                                )
+                                <StockItems
+                                    key={item.no}
+                                    item={item}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    onClone={handleClone}
+                                />
                             )
-                        }
-                    </tbody>
-                </table>
+                        )
+                    )}
+                </tbody>
+            </table>
         </div>
     );
-
-    
 }
+

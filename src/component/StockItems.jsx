@@ -1,35 +1,37 @@
 import { FaEdit, FaTrash, FaClone } from "react-icons/fa";
 
-export function StockItems( { item, onEdit, onDelete, onClone } ) 
-{
-        return (
-            <>
-                <tr>
-                    <td>{item.no}</td>
-                    <td>{item.product}</td>
-                    <td>{item.quantityInStock}</td>
-                    <td>{item.quantityInUsage}</td>
-                    <td>{item.costPerUnit}</td>
-                    <td style={{ display: "flex", gap: "10px" }}>
-                        <FaEdit
-                            title="Edit"
-                            style={{ cursor: "pointer", color: "blue" }}
-                            onClick={() => onEdit(item)}
-                        />
+export function StockItems({ item, onEdit, onDelete, onClone }) {
+    return (
+        <>
+            <tr>
+                <td>{item.no}</td>
+                <td>{item.product}</td>
+                <td>{item.quantityInStock}</td>
+                <td>{item.quantityInUsage}</td>
+                <td>{item.expiryDate}</td>
+                <td className="actions-cell">
+                    <FaEdit
+                        title="Edit"
+                        className="action-icon edit-icon"
+                        style={{ cursor: "pointer", color: "var(--color-primary)" }}
+                        onClick={() => onEdit(item)}
+                    />
 
-                        <FaTrash
-                            title="Delete"
-                            style={{ cursor: "pointer", color: "red" }}
-                            onClick={() => onDelete(item.no)}
-                        />
+                    <FaTrash
+                        title="Delete"
+                        className="action-icon delete-icon"
+                        style={{ cursor: "pointer", color: "var(--color-danger)" }}
+                        onClick={() => onDelete(item.no)}
+                    />
 
-                        <FaClone
-                            title="Clone"
-                            style={{ cursor: "pointer", color: "green" }}
-                            onClick={() => onClone(item)}
-                        />
-                    </td>
-                </tr>
-            </>
-        );
+                    <FaClone
+                        title="Clone"
+                        className="action-icon clone-icon"
+                        style={{ cursor: "pointer", color: "var(--color-success)" }}
+                        onClick={() => onClone(item)}
+                    />
+                </td>
+            </tr>
+        </>
+    );
 }

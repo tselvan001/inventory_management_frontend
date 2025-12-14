@@ -1,0 +1,44 @@
+.dashboard-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+    padding-bottom: var(--space-2);
+    /* Add some padding for scrollbar if needed */
+}
+
+.dashboard-grid>.dashboard-card {
+    flex-shrink: 0;
+    /* Prevent cards from shrinking */
+    width: 280px;
+    /* Maintain a consistent width for cards */
+}
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-hover) 100%);
+}
+
+.dashboard-card:hover {
+    border-color: var(--color-primary);
+}
+
+.category-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-4);
+    color: var(--color-primary);
+}
+
+.category-title {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-text-main);
+    margin-bottom: var(--space-2);
+}

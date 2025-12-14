@@ -1,0 +1,12 @@
+.stock-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+}
+
+.stock-page-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-main);
+}
