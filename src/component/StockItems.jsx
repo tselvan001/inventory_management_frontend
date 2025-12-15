@@ -30,6 +30,9 @@ export function StockItems({ item, onEdit, onDelete, onClone }) {
                         style={{ cursor: "pointer", color: "var(--color-success)" }}
                         onClick={() => onClone(item)}
                     />
+                    <button>Take</button>
+                    <button>Sell</button>
+                    <button>Empty</button>
                 </td>
             </tr>
         </>

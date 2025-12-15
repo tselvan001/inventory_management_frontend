@@ -1,7 +1,10 @@
 import { StockItems } from "./StockItems.jsx";
 import './StockTable.css';
 
-export function StockTable({ stockData, setStockData, setShowAddStockForm, setFormData, setIsEdit }) {
+export function StockTable({ stockData, setStockData, setShowAddStockForm, setFormData, setIsEdit }) 
+{
+    const [showTakeStockForm, setShowTakeStockForm] = useState(false);
+
     function handleEdit(item) {
         setFormData(item);
         setShowAddStockForm(true);
@@ -21,8 +24,30 @@ export function StockTable({ stockData, setStockData, setShowAddStockForm, setFo
         setShowAddStockForm(true);
     }
 
+    function handleTake(item) {
+        setShowTakeStockForm(true);
+    }
+
     return (
         <div className="table-container">
+
+            <Modal
+                isOpen={showTakeStockForm}
+                onClose={onClose}
+                title={'Take Stock'}
+            >
+                <TakeStock
+                    stock={formData}
+                    onTakeStock={(updatedStock) => {
+                        const updatedStockData = stockData.map(item =>
+                            item.no === updatedStock.no ? updatedStock : item
+                        );
+                        setStockData(updatedStockData);
+                        setShowTakeStockForm(false);
+                    }}
+                    onCancel={() => setShowTakeStockForm(false)}
+                />
+            </Modal>
             <table className="stock-table">
                 <thead>
                     <tr>
@@ -48,6 +73,8 @@ export function StockTable({ stockData, setStockData, setShowAddStockForm, setFo
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
                                     onClone={handleClone}
+                                    onTake={handleTake}
+                                    onDispose={handleDispose}
                                 />
                             )
                         )
