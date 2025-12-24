@@ -5,7 +5,9 @@ import './Layout.css';
 export function Layout({ children }) {
     return (
         <div className="layout">
-            <Navbar />
+            <div>
+                <Navbar />
+            </div>
             <main className="main-content container">
                 {children}
             </main>

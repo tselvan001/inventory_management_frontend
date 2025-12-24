@@ -16,8 +16,8 @@ export function FirstPage() {
     ];
 
     return (
-        <div>
-            <h1>Dashboard</h1>
+        <div className='dashboard'>
+            <div><h1>Dashboard</h1></div>
             <div className="dashboard-grid">
                 {categories.map((category) => (
                     <Card
