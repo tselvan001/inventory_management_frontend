@@ -14,6 +14,8 @@
     border-bottom: 1px solid var(--color-border);
     padding: var(--space-4) 0;
     box-shadow: var(--shadow-sm);
+    position: relative;
+    z-index: 100;
 }
 
 .navbar-content {

@@ -7,10 +7,10 @@ export function Navbar() {
     return (
         <nav className="navbar">
             <div className="container navbar-content">
-                <Link to="/" className="logo">IMS</Link>
+                <Link to="/" className="logo">TASA STOCKS</Link>
                 <div className="nav-links">
                     <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Dashboard</Link>
-                    <Link to="/stocks" className={`nav-link ${location.pathname === '/stocks' ? 'active' : ''}`}>Stock</Link>
+
                 </div>
             </div>
         </nav>
