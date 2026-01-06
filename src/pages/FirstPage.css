@@ -1,19 +1,20 @@
 .dashboard-grid {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: var(--space-6);
+    flex-wrap: wrap;
+    gap: var(--space-4);
     margin-top: var(--space-6);
     padding-bottom: var(--space-2);
-    /* Add some padding for scrollbar if needed */
+    /* Enable vertical scrolling */
+    max-height: 75vh;
+    overflow-y: auto;
+    padding-right: var(--space-2);
+    padding-top: var(--space-2);
+
+    /* Prevent scrollbar from overlapping content */
 }
 
 .dashboard-grid>.dashboard-card {
-    flex-shrink: 0;
-    /* Prevent cards from shrinking */
-    width: 280px;
-    /* Maintain a consistent width for cards */
+    flex: 1 1 180px;
 }
 
 .dashboard-card {
@@ -28,6 +29,8 @@
 
 .dashboard-card:hover {
     border-color: var(--color-primary);
+    position: relative;
+    z-index: 90;
 }
 
 .category-icon {

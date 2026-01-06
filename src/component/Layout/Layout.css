@@ -14,21 +14,32 @@
     border-bottom: 1px solid var(--color-border);
     padding: var(--space-4) 0;
     box-shadow: var(--shadow-sm);
+    position: relative;
+    z-index: 100;
 }
 
-.navbar-content {
+.navbar-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.logo {
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     font-size: var(--font-size-xl);
     font-weight: 700;
     color: var(--color-primary);
 }
 
-.nav-links {
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+}
+
+.navbar-links {
     display: flex;
     gap: var(--space-4);
 }
@@ -36,6 +47,7 @@
 .nav-link {
     color: var(--color-text-secondary);
     font-weight: 500;
+    transition: color 0.2s;
 }
 
 .nav-link:hover,

@@ -17,9 +17,24 @@
     padding: var(--space-6);
     border-radius: var(--radius-lg);
     width: 90%;
-    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     box-shadow: var(--shadow-lg);
     animation: slideIn 0.3s ease-out;
+}
+
+.modal-sm {
+    max-width: 400px;
+}
+
+.modal-md {
+    max-width: 500px;
+}
+
+.modal-lg {
+    max-width: 800px;
 }
 
 @keyframes slideIn {
