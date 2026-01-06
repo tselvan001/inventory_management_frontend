@@ -1,112 +1,110 @@
-import { useState } from 'react';
-import { Button } from './Button';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { Button } from './UI/Button';
+import { Input } from './UI/Input';
 import './Stock.css';
 
+const schema = yup.object().shape({
+    takenQuantity: yup.number()
+        .typeError("Must be a number")
+        .min(1, "Must be at least 1")
+        .required("Required"),
+    dateTaken: yup.string().required("Required"),
+    takenBy: yup.string().required("Required")
+});
+
 export function TakeStock({ stock, onTakeStock, onCancel }) {
-    const [takenQuantity, setTakenQuantity] = useState('1');
-    const [dateTaken, setDateTaken] = useState(new Date().toISOString().split('T')[0]);
+    const today = new Date().toISOString().split('T')[0];
 
-    function handleSubmit() {
-        if (!takenQuantity || takenQuantity <= 0) {
-            alert("Please enter a valid quantity");
-            return;
+    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+        resolver: yupResolver(schema),
+        defaultValues: {
+            takenQuantity: 1,
+            dateTaken: today,
+            takenBy: ''
         }
+    });
 
-        const qty = Number(takenQuantity);
-        if (qty > stock.quantityInStock) {
+    useEffect(() => {
+        if (stock) {
+            reset({
+                takenQuantity: 1,
+                dateTaken: today,
+                takenBy: ''
+            });
+        }
+    }, [stock, reset, today]);
+
+    const onSubmit = (data) => {
+        if (data.takenQuantity > stock.quantityInStock) {
             alert("Cannot take more than available stock");
             return;
         }
 
-        const updatedStock = {
-            ...stock,
-            quantityInStock: Number(stock.quantityInStock) - qty,
-            quantityInUsage: Number(stock.quantityInUsage || 0) + qty
-        };
-
-        const takenRecord = {
+        const takenData = {
+            ...data,
+            takenQuantity: Number(data.takenQuantity),
             stockId: stock.id,
-            product: stock.product,
-            takenQuantity: qty,
-            dateTaken: dateTaken,
-            takenBy: 'Admin'
+            product: stock.product
         };
-
-        onTakeStock(takenRecord);
-    }
-
-    const currentStock = Number(stock.quantityInStock);
-    const taken = Number(takenQuantity) || 0;
-    const remainingStock = currentStock - taken;
-
-    const handleQuantityChange = (e) => {
-        const val = e.target.value;
-        if (val === '') {
-            setTakenQuantity('');
-            return;
-        }
-        const numVal = parseInt(val);
-        if (numVal < 0) return; // Prevent negative
-        if (numVal > currentStock) return; // Prevent > stock
-        setTakenQuantity(val);
+        onTakeStock(takenData);
     };
 
     return (
-        <div className="stock-form">
-            <div className="stock-summary-card cols-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="stock-form">
+            <div className="stock-summary-card">
                 <div className="summary-item">
                     <span className="summary-label">Product Name</span>
                     <span className="summary-value highlight">{stock.product}</span>
                 </div>
                 <div className="summary-item">
-                    <span className="summary-label">Current Stock</span>
-                    <span className="summary-value">{currentStock}</span>
-                </div>
-                <div className="summary-item">
-                    <span className="summary-label">New Stock Qty</span>
-                    <span className="summary-value">{remainingStock}</span>
-                </div>
-                <div className="summary-item">
-                    <span className="summary-label">Expiry Date</span>
-                    <span className="summary-value">{stock.expiryDate}</span>
+                    <span className="summary-label">Quantity Available</span>
+                    <span className="summary-value">{stock.quantityInStock}</span>
                 </div>
             </div>
 
-            <div className="form-group">
-                <label className="form-label">Taken Quantity</label>
-                <input
-                    className="form-control"
-                    type="number"
-                    value={takenQuantity}
-                    onChange={handleQuantityChange}
-                    placeholder="Enter quantity"
-                    min="1"
-                    max={currentStock}
-                />
-            </div>
+            <Input
+                label="Quantity to Take"
+                type="number"
+                placeholder="0"
+                {...register("takenQuantity")}
+                error={errors.takenQuantity?.message}
+                max={stock.quantityInStock}
+                required
+            />
 
-            <div className="form-group">
-                <label className="form-label">Date Taken</label>
-                <input
-                    className="form-control"
-                    type="date"
-                    value={dateTaken}
-                    onChange={(e) => setDateTaken(e.target.value)}
-                />
-            </div>
+            <Input
+                label="Date Taken"
+                type="date"
+                {...register("dateTaken")}
+                error={errors.dateTaken?.message}
+                required
+            />
+
+            <Input
+                label="Taken By"
+                type="text"
+                placeholder="Enter your name"
+                {...register("takenBy")}
+                error={errors.takenBy?.message}
+                required
+            />
 
             <div className="form-actions">
                 <Button
+                    type="button"
                     name="Cancel"
                     variant="secondary"
                     onClick={onCancel}
                 />
                 <Button
-                    name="Take"
+                    type="submit"
+                    name="Confirm Take"
                     variant="primary"
-                    onClick={handleSubmit}
                 />
             </div>
-        </div >
+        </form>
     );
 }

@@ -1,54 +1,59 @@
-import { useState } from 'react';
-import { Button } from './Button.jsx';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { Button } from './UI/Button';
+import { Input } from './UI/Input';
 import './Stock.css';
+
+const schema = yup.object().shape({
+    emptyDate: yup.string().required("Required"),
+    emptyQuantity: yup.number()
+        .typeError("Must be a number")
+        .min(1, "Must be at least 1")
+        .required("Required"),
+    reason: yup.string().trim().required("Reason is required")
+});
 
 export function EmptyStockForm({ record, productName, onSave, onCancel }) {
     const today = new Date().toISOString().split('T')[0];
 
-    const [formData, setFormData] = useState({
-        emptyDate: today,
-        emptyQuantity: 1,
-        reason: ''
+    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+        resolver: yupResolver(schema),
+        defaultValues: {
+            emptyDate: today,
+            emptyQuantity: 1,
+            reason: ''
+        }
     });
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // Validate empty quantity
-        if (formData.emptyQuantity <= 0) {
-            alert('Empty quantity must be greater than 0');
-            return;
+    useEffect(() => {
+        if (record) {
+            reset({
+                emptyDate: today,
+                emptyQuantity: 1,
+                reason: ''
+            });
         }
+    }, [record, reset, today]);
 
-        if (formData.emptyQuantity > record.takenQuantity) {
+    const onSubmit = (data) => {
+        if (data.emptyQuantity > record.takenQuantity) {
             alert(`Empty quantity cannot exceed taken quantity (${record.takenQuantity})`);
-            return;
-        }
-
-        if (!formData.reason.trim()) {
-            alert('Please provide a reason for emptying');
             return;
         }
 
         onSave({
             ...record,
-            stockId: record.stockId, // Ensure stockId from TakenStock record is passed
-            emptyDate: formData.emptyDate,
-            emptyQuantity: parseInt(formData.emptyQuantity),
-            reason: formData.reason
+            stockId: record.stockId,
+            emptyDate: data.emptyDate,
+            emptyQuantity: Number(data.emptyQuantity),
+            reason: data.reason
         });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="stock-form">
+        <form onSubmit={handleSubmit(onSubmit)} className="stock-form">
             <div className="stock-summary-card">
                 <div className="summary-item">
                     <span className="summary-label">Product Name</span>
@@ -64,47 +69,33 @@ export function EmptyStockForm({ record, productName, onSave, onCancel }) {
                 </div>
             </div>
 
-            <div className="form-group">
-                <label htmlFor="emptyDate">Empty Date</label>
-                <input
-                    type="date"
-                    id="emptyDate"
-                    name="emptyDate"
-                    value={formData.emptyDate}
-                    onChange={handleChange}
-                    className="form-control"
-                    required
-                />
-            </div>
+            <Input
+                label="Empty Date"
+                type="date"
+                {...register("emptyDate")}
+                error={errors.emptyDate?.message}
+                required
+            />
 
-            <div className="form-group">
-                <label htmlFor="emptyQuantity">Empty Quantity</label>
-                <input
-                    type="number"
-                    id="emptyQuantity"
-                    name="emptyQuantity"
-                    value={formData.emptyQuantity}
-                    onChange={handleChange}
-                    min="1"
-                    max={record.takenQuantity}
-                    className="form-control"
-                    required
-                />
-            </div>
+            <Input
+                label="Empty Quantity"
+                type="number"
+                {...register("emptyQuantity")}
+                error={errors.emptyQuantity?.message}
+                min="1"
+                max={record.takenQuantity}
+                required
+            />
 
-            <div className="form-group">
-                <label htmlFor="reason">Reason</label>
-                <textarea
-                    id="reason"
-                    name="reason"
-                    value={formData.reason}
-                    onChange={handleChange}
-                    className="form-control"
-                    rows="3"
-                    placeholder="Enter reason for emptying..."
-                    required
-                />
-            </div>
+            <Input
+                label="Reason"
+                type="textarea"
+                {...register("reason")}
+                error={errors.reason?.message}
+                rows="3"
+                placeholder="Enter reason for emptying..."
+                required
+            />
 
             <div className="form-actions">
                 <Button type="submit" name="Save" variant="primary" />

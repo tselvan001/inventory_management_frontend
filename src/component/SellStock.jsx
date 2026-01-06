@@ -1,143 +1,137 @@
-import { useState, useEffect } from 'react';
-import { Button } from './Button';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { Button } from './UI/Button';
+import { Input } from './UI/Input';
 import './Stock.css';
 
-export function SellStock({ stock, onSellStock, onCancel }) {
-    const [customerName, setCustomerName] = useState('');
-    const [mobileNumber, setMobileNumber] = useState('');
-    const [quantity, setQuantity] = useState('1');
-    const [sellingPrice, setSellingPrice] = useState(stock.mrpPerUnit);
+const schema = yup.object().shape({
+    mobileNumber: yup.string()
+        .matches(/^\d{10}$/, "Mobile number must be 10 digits")
+        .required("Required"),
+    customerName: yup.string().required("Required"),
+    quantity: yup.number()
+        .typeError("Must be a number")
+        .min(1, "At least 1")
+        .required("Required"),
+    sellingPrice: yup.number()
+        .typeError("Must be a number")
+        .min(0, "Cannot be negative")
+        .required("Required"),
+    dateSold: yup.string().required("Required")
+});
 
-    const currentStock = Number(stock.quantityInStock);
-    const available = currentStock;
+export function SellStock({ stock, onSellStock, onCancel }) {
+    const today = new Date().toISOString().split('T')[0];
+
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
+        resolver: yupResolver(schema),
+        defaultValues: {
+            mobileNumber: '',
+            customerName: '',
+            quantity: 1,
+            sellingPrice: stock.mrpPerUnit || 0,
+            dateSold: today
+        }
+    });
+
+    const quantity = watch("quantity");
+    const sellingPrice = watch("sellingPrice");
+    const totalAmount = (Number(quantity) || 0) * (Number(sellingPrice) || 0);
 
     useEffect(() => {
-        setSellingPrice(stock.mrpPerUnit);
-    }, [stock]);
+        if (stock) {
+            reset({
+                mobileNumber: '',
+                customerName: '',
+                quantity: 1,
+                sellingPrice: stock.mrpPerUnit || 0,
+                dateSold: today
+            });
+        }
+    }, [stock, reset, today]);
 
-    function handleSubmit() {
-        if (!quantity || Number(quantity) <= 0) {
-            alert("Please enter a valid quantity");
+    const onSubmit = (data) => {
+        if (data.quantity > stock.quantityInStock) {
+            alert('Insufficient stock!');
             return;
         }
 
-        const qty = Number(quantity);
-        if (qty > available) {
-            alert("Cannot sell more than available stock");
-            return;
-        }
-
-        if (!customerName || !mobileNumber) {
-            alert("Please enter customer details");
-            return;
-        }
-
-        if (!/^\d{10}$/.test(mobileNumber)) {
-            alert("Please enter a valid 10-digit mobile number");
-            return;
-        }
-
-        const updatedStock = {
-            ...stock,
-            quantityInStock: Number(stock.quantityInStock) - qty,
-            quantitySold: (stock.quantitySold || 0) + qty
-        };
-
-        const soldRecord = {
+        const sellData = {
+            ...data,
+            totalAmount: totalAmount,
             stockId: stock.id,
-            product: stock.product,
-            customerName,
-            mobileNumber,
-            quantity: qty,
-            sellingPrice: Number(sellingPrice),
-            totalAmount: qty * Number(sellingPrice),
-            dateSold: new Date().toISOString().split('T')[0]
+            product: stock.product
         };
-
-        onSellStock(soldRecord);
-    }
+        onSellStock(sellData);
+    };
 
     return (
-        <div className="stock-form">
-            <div className="stock-summary-card cols-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="stock-form">
+            <div className="stock-summary-card">
                 <div className="summary-item">
                     <span className="summary-label">Product Name</span>
                     <span className="summary-value highlight">{stock.product}</span>
                 </div>
                 <div className="summary-item">
-                    <span className="summary-label">Qty Available</span>
-                    <span className="summary-value">{available}</span>
+                    <span className="summary-label">Quantity Available</span>
+                    <span className="summary-value">{stock.quantityInStock}</span>
                 </div>
                 <div className="summary-item">
                     <span className="summary-label">MRP</span>
-                    <span className="summary-value">{stock.mrpPerUnit}</span>
-                </div>
-                <div className="summary-item">
-                    <span className="summary-label">Expiry Date</span>
-                    <span className="summary-value">{stock.expiryDate}</span>
+                    <span className="summary-value">₹{stock.mrpPerUnit}</span>
                 </div>
             </div>
 
-            <div className="form-row">
-                <div className="form-group half-width">
-                    <label className="form-label">Mobile Number</label>
-                    <input
-                        className="form-control"
-                        type="tel"
-                        value={mobileNumber}
-                        onChange={(e) => setMobileNumber(e.target.value)}
-                        placeholder="Enter mobile number"
-                    />
-                </div>
-                <div className="form-group half-width">
-                    <label className="form-label">Customer Name</label>
-                    <input
-                        className="form-control"
-                        type="text"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Enter customer name"
-                    />
-                </div>
-            </div>
+            <Input
+                label="Mobile Number"
+                type="tel"
+                placeholder="Enter 10 digit number"
+                {...register("mobileNumber")}
+                error={errors.mobileNumber?.message}
+                required
+            />
+
+            <Input
+                label="Customer Name"
+                type="text"
+                placeholder="Enter name"
+                {...register("customerName")}
+                error={errors.customerName?.message}
+                required
+            />
 
             <div className="form-row">
-                <div className="form-group half-width">
-                    <label className="form-label">Quantity</label>
-                    <input
-                        className="form-control"
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                        placeholder="Enter quantity"
-                        min="1"
-                        max={available}
-                    />
-                </div>
-                <div className="form-group half-width">
-                    <label className="form-label">Selling Price</label>
-                    <input
-                        className="form-control"
-                        type="number"
-                        value={sellingPrice}
-                        onChange={(e) => setSellingPrice(e.target.value)}
-                        placeholder="Enter selling price"
-                    />
-                </div>
+                <Input
+                    label="Quantity"
+                    type="number"
+                    {...register("quantity")}
+                    error={errors.quantity?.message}
+                    min="1"
+                    max={stock.quantityInStock}
+                    required
+                />
+                <Input
+                    label="Selling Price"
+                    type="number"
+                    {...register("sellingPrice")}
+                    error={errors.sellingPrice?.message}
+                    min="0"
+                    step="0.01"
+                    required
+                />
+            </div>
+
+            <div className="total-amount-display">
+                <span className="label">Total Amount:</span>
+                <span className="value">₹{totalAmount.toFixed(2)}</span>
             </div>
 
             <div className="form-actions">
-                <Button
-                    name="Cancel"
-                    variant="secondary"
-                    onClick={onCancel}
-                />
-                <Button
-                    name="Sell"
-                    variant="primary"
-                    onClick={handleSubmit}
-                />
+                <Button type="submit" name="Confirm Sale" variant="primary" />
+                <Button type="button" name="Cancel" variant="secondary" onClick={onCancel} />
             </div>
-        </div>
+        </form>
     );
 }
