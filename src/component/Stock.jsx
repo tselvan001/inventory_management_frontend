@@ -10,7 +10,6 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
         quantityInUsage: '',
         manufacturingDate: '',
         expiryDate: '',
-        unit: 'Box',
         mrpPerUnit: '',
         purchasePricePerUnit: '',
         batchNumber: '',
@@ -139,7 +138,6 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
                 </div>
             </div>
 
-            {/* Unit is default Box */}
 
             <div className="form-grid">
                 <div className="form-group">
