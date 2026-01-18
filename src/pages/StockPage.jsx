@@ -43,8 +43,8 @@ export function StockPage() {
     const fetchStocks = async (loc, productName, batchNumber) => {
         try {
             setLoading(true);
-            const response = await stockService.getAllStocks(loc, productName, batchNumber);
-            setStockData(response.data);
+            const response = await stockService.getAllStocks(loc, productName, batchNumber, 0, 1000); // Fetch first 1000 items
+            setStockData(response.data?.content || []);
             setError(null);
         } catch (err) {
             console.error("Error fetching stocks:", err);
@@ -86,7 +86,7 @@ export function StockPage() {
 
     return (
         <div>
-            <div className={`stock-page-header ${stockData.length === 0 ? 'header-empty' : ''}`}>
+            <div className={`stock-page-header ${(!stockData || stockData.length === 0) ? 'header-empty' : ''}`}>
                 <div className="header-left">
                     <h1 className="stock-page-title">{displayName}</h1>
                 </div>

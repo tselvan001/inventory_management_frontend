@@ -3,7 +3,7 @@ import './StockTable.css';
 export function EmptyStockHistory({ emptyRecords, productName }) {
     return (
         <div className="empty-stock-history">
-            {emptyRecords.length === 0 ? (
+            {!emptyRecords || emptyRecords.length === 0 ? (
                 <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-secondary)' }}>
                     No empty stock records found for this item.
                 </p>
@@ -20,7 +20,7 @@ export function EmptyStockHistory({ emptyRecords, productName }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {emptyRecords.map((record, index) => (
+                            {(emptyRecords || []).map((record, index) => (
                                 <tr key={record.id}>
                                     <td>{index + 1}</td>
                                     <td>{record.dateTaken}</td>

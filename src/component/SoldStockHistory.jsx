@@ -3,7 +3,7 @@ import './StockTable.css';
 export function SoldStockHistory({ soldRecords, productName }) {
     return (
         <div className="history-container">
-            {soldRecords.length === 0 ? (
+            {!soldRecords || soldRecords.length === 0 ? (
                 <p className="no-records">No sales history found for {productName}.</p>
             ) : (
                 <table className="history-table">
@@ -18,7 +18,7 @@ export function SoldStockHistory({ soldRecords, productName }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {soldRecords.map((record, index) => (
+                        {(soldRecords || []).map((record, index) => (
                             <tr key={index}>
                                 <td>{record.dateSold}</td>
                                 <td>{record.customerName}</td>

@@ -4,7 +4,7 @@ export function TakenStockHistory({ takenRecords, productName }) {
     return (
         <div className="taken-stock-history">
 
-            {takenRecords.length === 0 ? (
+            {!takenRecords || takenRecords.length === 0 ? (
                 <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-secondary)' }}>
                     No taken stock records found for this item.
                 </p>
@@ -20,7 +20,7 @@ export function TakenStockHistory({ takenRecords, productName }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {takenRecords.map((record, index) => (
+                            {(takenRecords || []).map((record, index) => (
                                 <tr key={record.id}>
                                     <td>{index + 1}</td>
                                     <td>{record.dateTaken}</td>

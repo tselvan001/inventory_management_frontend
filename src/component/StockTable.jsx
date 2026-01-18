@@ -84,7 +84,7 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
         setLoadingHistory(true);
         try {
             const response = await takenStockService.getTakenStocksByStockId(item.id);
-            setTakenStockRecords(response.data);
+            setTakenStockRecords(response.data || []);
             setShowHistoryModal(true);
         } catch (err) {
             alert("Error fetching history");
@@ -97,7 +97,7 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
         setSelectedItemForEmpty(item);
         try {
             const response = await takenStockService.getTakenStocksByStockId(item.id);
-            setTakenStockRecords(response.data);
+            setTakenStockRecords(response.data || []);
             setShowEmptyModal(true);
         } catch (err) {
             alert("Error fetching taken stocks");
@@ -108,7 +108,7 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
         setSelectedItemForEmptyHistory(item);
         try {
             const response = await emptyStockService.getEmptyStocksByStockId(item.id);
-            setEmptyStockRecords(response.data);
+            setEmptyStockRecords(response.data || []);
             setShowEmptyHistoryModal(true);
         } catch (err) {
             alert("Error fetching empty history");
@@ -162,7 +162,7 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
         setSelectedItemForSoldHistory(item);
         try {
             const response = await soldStockService.getSoldStocksByStockId(item.id);
-            setSoldStockRecords(response.data);
+            setSoldStockRecords(response.data || []);
             setShowSoldHistoryModal(true);
         } catch (err) {
             alert("Error fetching sales history");
@@ -298,12 +298,12 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
                     </tr>
                 </thead>
                 <tbody>
-                    {stockData.length === 0 ? (
+                    {!stockData || stockData.length === 0 ? (
                         <tr>
                             <td colSpan="11" style={{ textAlign: 'center', padding: '2rem' }}>No items found. Add some stock!</td>
                         </tr>
                     ) : (
-                        stockData.map(
+                        (stockData || []).map(
                             (item, index) => (
                                 <StockItems
                                     key={item.id}
