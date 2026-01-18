@@ -10,7 +10,8 @@ const api = axios.create({
 });
 
 export const stockService = {
-    getAllStocks: (location) => api.get('/stocks', { params: { location } }),
+    getAllStocks: (location, productName, batchNumber) =>
+        api.get('/stocks', { params: { location, productName, batchNumber } }),
     getStockById: (id) => api.get(`/stocks/${id}`),
     createStock: (data) => api.post('/stocks', data),
     updateStock: (id, data) => api.put(`/stocks/${id}`, data),

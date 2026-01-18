@@ -9,7 +9,20 @@ import './StockPage.css';
 
 export function StockPage() {
     const [searchParams] = useSearchParams();
-    const location = searchParams.get("location") ?? 'Stock';
+    const location = searchParams.get("location");
+
+    const locationMapping = {
+        'retail': 'Retail',
+        'pantry': 'Pantry',
+        'salon_products_in_pantry': 'Salon Products in Pantry',
+        'colours': 'Colours',
+        'men_hairwash': 'Men Hairwash',
+        'men_facial_room': 'Men Facial Room',
+        'nail_art': 'Nail Art',
+        'bridal': 'Bridal'
+    };
+
+    const displayName = locationMapping[location] || location || 'Stock';
     const [showAddStockForm, setShowAddStockForm] = useState(false);
     const [stockData, setStockData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -19,14 +32,18 @@ export function StockPage() {
     const [formData, setFormData] = useState(defaultVal);
     const [isEdit, setIsEdit] = useState(false);
 
-    useEffect(() => {
-        fetchStocks(location);
-    }, [location]);
+    // Filter states
+    const [filterProductName, setFilterProductName] = useState("");
+    const [filterBatchNumber, setFilterBatchNumber] = useState("");
 
-    const fetchStocks = async (loc) => {
+    useEffect(() => {
+        fetchStocks(location, filterProductName, filterBatchNumber);
+    }, [location, filterProductName, filterBatchNumber]);
+
+    const fetchStocks = async (loc, productName, batchNumber) => {
         try {
             setLoading(true);
-            const response = await stockService.getAllStocks(loc);
+            const response = await stockService.getAllStocks(loc, productName, batchNumber);
             setStockData(response.data);
             setError(null);
         } catch (err) {
@@ -50,7 +67,7 @@ export function StockPage() {
                 location: location // Map current page location to stock item
             };
             await stockService.createStock(stockToSave);
-            await fetchStocks(location); // Refresh list
+            await fetchStocks(location, filterProductName, filterBatchNumber); // Refresh list with current filters
             onClose();
         } catch (err) {
             alert(err.response?.data?.error || "Error saving stock");
@@ -60,7 +77,7 @@ export function StockPage() {
     async function onEdit(updatedStock) {
         try {
             await stockService.updateStock(updatedStock.id, updatedStock);
-            await fetchStocks(location); // Refresh list
+            await fetchStocks(location, filterProductName, filterBatchNumber); // Refresh list with current filters
             onClose();
         } catch (err) {
             alert(err.response?.data?.error || "Error updating stock");
@@ -69,9 +86,29 @@ export function StockPage() {
 
     return (
         <div>
-            <div className="stock-page-header">
-                <h1 className="stock-page-title">Stock List - {location}</h1>
-                <Button onClick={() => setShowAddStockForm(true)} name="Add Stock" variant="primary" />
+            <div className={`stock-page-header ${stockData.length === 0 ? 'header-empty' : ''}`}>
+                <div className="header-left">
+                    <h1 className="stock-page-title">{displayName}</h1>
+                </div>
+                <div className="header-right">
+                    <div className="filter-bar">
+                        <input
+                            type="text"
+                            placeholder="Filter by Product..."
+                            value={filterProductName}
+                            onChange={(e) => setFilterProductName(e.target.value)}
+                            className="filter-input"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Filter by Batch No..."
+                            value={filterBatchNumber}
+                            onChange={(e) => setFilterBatchNumber(e.target.value)}
+                            className="filter-input"
+                        />
+                    </div>
+                    <Button onClick={() => setShowAddStockForm(true)} name="Add Stock" variant="primary" />
+                </div>
             </div>
 
             {loading && <div className="loading">Loading stocks...</div>}
@@ -80,7 +117,7 @@ export function StockPage() {
             <Modal
                 isOpen={showAddStockForm}
                 onClose={onClose}
-                title={isEdit ? `Edit ${location} Stock` : `Add ${location} Stock`}
+                title={isEdit ? `Edit ${displayName} Stock` : `Add ${displayName} Stock`}
             >
                 <Stock
                     location={location}
@@ -96,7 +133,7 @@ export function StockPage() {
                 <StockTable
                     stockData={stockData}
                     setStockData={setStockData}
-                    refreshData={fetchStocks}
+                    refreshData={() => fetchStocks(location, filterProductName, filterBatchNumber)}
                     setShowAddStockForm={setShowAddStockForm}
                     setFormData={setFormData}
                     setIsEdit={setIsEdit}

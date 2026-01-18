@@ -281,19 +281,20 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
             <table className="stock-table">
                 <thead>
                     <tr>
-                        <th>S.No</th>
-                        <th>Product</th>
-                        <th>Stock Qty</th>
-                        {location === 'Retail' ? (
-                            <th>Sold Qty</th>
+                        <th className="col-compact">S.No</th>
+                        <th className="text-left-align col-product">Product</th>
+                        <th className="text-left-align col-batch">Batch No</th>
+                        <th className="col-compact">Stock Qty</th>
+                        {location === 'retail' ? (
+                            <th className="col-compact">Sold Qty</th>
                         ) : (
                             <>
-                                <th>Taken Qty</th>
-                                <th>Empty Qty</th>
+                                <th className="col-compact">Taken Qty</th>
+                                <th className="col-compact">Empty Qty</th>
                             </>
                         )}
-                        <th>Exp Date</th>
-                        <th>Actions</th>
+                        <th className="col-compact">Exp Date</th>
+                        <th className="col-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

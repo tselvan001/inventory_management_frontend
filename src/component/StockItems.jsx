@@ -1,16 +1,18 @@
 import { FaEdit, FaTrash, FaClone } from "react-icons/fa";
 
 export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onViewTakenHistory, onViewEmptyHistory, onEmpty, onSell, onViewSoldHistory, location }) {
-    const isRetail = location === 'Retail';
+    const isRetail = location === 'retail';
 
     return (
         <>
             <tr>
-                <td>{index}</td>
-                <td>{item.product}</td>
-                <td>{item.quantityInStock}</td>
+                <td className="col-compact">{index}</td>
+                <td className="text-left-align col-product">{item.product}</td>
+                <td className="text-left-align col-batch">{item.batchNumber}</td>
+                <td className="col-compact">{item.quantityInStock}</td>
                 {isRetail ? (
                     <td
+                        className="col-compact"
                         onClick={() => onViewSoldHistory(item)}
                         style={{
                             cursor: 'pointer',
@@ -24,6 +26,7 @@ export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onV
                 ) : (
                     <>
                         <td
+                            className="col-compact"
                             onClick={() => onViewTakenHistory(item)}
                             style={{
                                 cursor: 'pointer',
@@ -35,6 +38,7 @@ export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onV
                             {item.quantityInUsage}
                         </td>
                         <td
+                            className="col-compact"
                             onClick={() => onViewEmptyHistory(item)}
                             style={{
                                 cursor: 'pointer',
@@ -48,8 +52,8 @@ export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onV
                     </>
                 )}
 
-                <td>{item.expiryDate}</td>
-                <td className="actions-cell">
+                <td className="col-compact">{item.expiryDate}</td>
+                <td className="actions-cell col-actions">
                     <FaEdit
                         title="Edit"
                         className="action-icon edit-icon"

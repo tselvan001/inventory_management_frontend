@@ -12,7 +12,9 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
         expiryDate: '',
         unit: 'Box',
         mrpPerUnit: '',
-        purchasePricePerUnit: ''
+        purchasePricePerUnit: '',
+        batchNumber: '',
+        stockReceivedDate: ''
     });
 
     function handleSubmit() {
@@ -35,6 +37,14 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
         };
         onEdit(updatedStock);
     }
+
+    const handleDateClick = (e) => {
+        try {
+            e.target.showPicker();
+        } catch (error) {
+            console.log("showPicker not supported");
+        }
+    };
 
     useEffect(() => {
         if (stock) {
@@ -59,6 +69,18 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
             </div>
 
             <div className="form-group">
+                <label className="form-label">Batch Number</label>
+                <input
+                    className="form-control"
+                    name="batchNumber"
+                    type="text"
+                    placeholder="e.g. B123"
+                    value={stockData.batchNumber}
+                    onChange={(e) => setStockData({ ...stockData, batchNumber: e.target.value })}
+                />
+            </div>
+
+            <div className="form-group">
                 <label className="form-label">Quantity In Stock</label>
                 <input
                     className="form-control"
@@ -76,60 +98,81 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
 
             {/* Quantity In Usage is default 0 */}
 
-            <div className="form-group">
-                <label className="form-label">Manufacturing Date</label>
-                <input
-                    className="form-control"
-                    name="manufacturingDate"
-                    type="date"
-                    value={stockData.manufacturingDate}
-                    onChange={(e) => setStockData({ ...stockData, manufacturingDate: e.target.value })}
-                />
+            <div className="form-grid">
+                <div className="form-group">
+                    <label className="form-label">Manufacturing Date</label>
+                    <div className="date-input-wrapper" onClick={(e) => e.currentTarget.querySelector('input').showPicker()}>
+                        <input
+                            className="form-control date-input"
+                            name="manufacturingDate"
+                            type="date"
+                            value={stockData.manufacturingDate}
+                            onChange={(e) => setStockData({ ...stockData, manufacturingDate: e.target.value })}
+                        />
+                    </div>
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Expiry Date</label>
+                    <div className="date-input-wrapper" onClick={(e) => e.currentTarget.querySelector('input').showPicker()}>
+                        <input
+                            className="form-control date-input"
+                            name="expiryDate"
+                            type="date"
+                            value={stockData.expiryDate}
+                            onChange={(e) => setStockData({ ...stockData, expiryDate: e.target.value })}
+                        />
+                    </div>
+                </div>
             </div>
 
             <div className="form-group">
-                <label className="form-label">Expiry Date</label>
-                <input
-                    className="form-control"
-                    name="expiryDate"
-                    type="date"
-                    value={stockData.expiryDate}
-                    onChange={(e) => setStockData({ ...stockData, expiryDate: e.target.value })}
-                />
+                <label className="form-label">Stock Received Date</label>
+                <div className="date-input-wrapper" onClick={(e) => e.currentTarget.querySelector('input').showPicker()}>
+                    <input
+                        className="form-control date-input"
+                        name="stockReceivedDate"
+                        type="date"
+                        value={stockData.stockReceivedDate}
+                        onChange={(e) => setStockData({ ...stockData, stockReceivedDate: e.target.value })}
+                    />
+                </div>
             </div>
 
             {/* Unit is default Box */}
 
-            <div className="form-group">
-                <label className="form-label">MRP per Unit</label>
-                <input
-                    className="form-control"
-                    name="mrpPerUnit"
-                    type="number"
-                    placeholder="0.00"
-                    value={stockData.mrpPerUnit}
-                    min="0"
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        if (val >= 0) setStockData({ ...stockData, mrpPerUnit: val });
-                    }}
-                />
-            </div>
+            <div className="form-grid">
+                <div className="form-group">
+                    <label className="form-label">MRP per Unit</label>
+                    <input
+                        className="form-control"
+                        name="mrpPerUnit"
+                        type="number"
+                        placeholder="0.00"
+                        value={stockData.mrpPerUnit}
+                        min="0"
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (val >= 0) setStockData({ ...stockData, mrpPerUnit: val });
+                        }}
+                    />
+                </div>
 
-            <div className="form-group">
-                <label className="form-label">Purchase Price per Unit</label>
-                <input
-                    className="form-control"
-                    name="purchasePricePerUnit"
-                    type="number"
-                    placeholder="0.00"
-                    value={stockData.purchasePricePerUnit}
-                    min="0"
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        if (val >= 0) setStockData({ ...stockData, purchasePricePerUnit: val });
-                    }}
-                />
+                <div className="form-group">
+                    <label className="form-label">Purchase Price per Unit</label>
+                    <input
+                        className="form-control"
+                        name="purchasePricePerUnit"
+                        type="number"
+                        placeholder="0.00"
+                        value={stockData.purchasePricePerUnit}
+                        min="0"
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (val >= 0) setStockData({ ...stockData, purchasePricePerUnit: val });
+                        }}
+                    />
+                </div>
             </div>
 
             <div className="form-actions">
