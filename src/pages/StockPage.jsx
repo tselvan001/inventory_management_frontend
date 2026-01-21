@@ -5,11 +5,13 @@ import { useSearchParams } from 'react-router-dom';
 import { Modal } from '../component/UI/Modal.jsx';
 import { Button } from '../component/Button.jsx';
 import { stockService } from '../services/api.js';
+import { useAuth } from '../context/AuthContext';
 import './StockPage.css';
 
 export function StockPage() {
     const [searchParams] = useSearchParams();
     const location = searchParams.get("location");
+    const { user, hasPermission } = useAuth();
 
     const locationMapping = {
         'retail': 'Retail',
@@ -44,11 +46,14 @@ export function StockPage() {
         try {
             setLoading(true);
             const response = await stockService.getAllStocks(loc, productName, batchNumber, 0, 1000); // Fetch first 1000 items
-            setStockData(response.data?.content || []);
+            setStockData(response.data?.content || response.data || []);
             setError(null);
         } catch (err) {
             console.error("Error fetching stocks:", err);
-            setError("Failed to load stocks. Please ensure the backend is running.");
+            // Only set error if it's not an auth error (which is handled by api interceptor)
+            if (!err.response || ![401, 403].includes(err.response.status)) {
+                setError("Failed to load stocks. Please ensure the backend is running.");
+            }
         } finally {
             setLoading(false);
         }
@@ -107,7 +112,7 @@ export function StockPage() {
                             className="filter-input"
                         />
                     </div>
-                    <Button onClick={() => setShowAddStockForm(true)} name="Add Stock" variant="primary" />
+                    {hasPermission('STOCKS_CREATE') && <Button onClick={() => setShowAddStockForm(true)} name="Add Stock" variant="primary" />}
                 </div>
             </div>
 

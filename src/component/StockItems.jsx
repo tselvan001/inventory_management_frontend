@@ -1,7 +1,9 @@
 import { FaEdit, FaTrash, FaClone } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onViewTakenHistory, onViewEmptyHistory, onEmpty, onSell, onViewSoldHistory, location }) {
     const isRetail = location === 'retail';
+    const { user, hasPermission } = useAuth();
 
     return (
         <>
@@ -13,13 +15,13 @@ export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onV
                 {isRetail ? (
                     <td
                         className="col-compact"
-                        onClick={() => onViewSoldHistory(item)}
+                        onClick={() => hasPermission('STOCKS_SELL_VIEW') && onViewSoldHistory(item)}
                         style={{
-                            cursor: 'pointer',
-                            color: 'var(--color-primary)',
-                            textDecoration: 'underline'
+                            cursor: hasPermission('STOCKS_SELL_VIEW') ? 'pointer' : 'default',
+                            color: hasPermission('STOCKS_SELL_VIEW') ? 'var(--color-primary)' : 'inherit',
+                            textDecoration: hasPermission('STOCKS_SELL_VIEW') ? 'underline' : 'none'
                         }}
-                        title="Click to view sales history"
+                        title={hasPermission('STOCKS_SELL_VIEW') ? "Click to view sales history" : ""}
                     >
                         {item.quantitySold || 0}
                     </td>
@@ -27,25 +29,25 @@ export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onV
                     <>
                         <td
                             className="col-compact"
-                            onClick={() => onViewTakenHistory(item)}
+                            onClick={() => hasPermission('STOCKS_TAKE_VIEW') && onViewTakenHistory(item)}
                             style={{
-                                cursor: 'pointer',
-                                color: 'var(--color-primary)',
-                                textDecoration: 'underline'
+                                cursor: hasPermission('STOCKS_TAKE_VIEW') ? 'pointer' : 'default',
+                                color: hasPermission('STOCKS_TAKE_VIEW') ? 'var(--color-primary)' : 'inherit',
+                                textDecoration: hasPermission('STOCKS_TAKE_VIEW') ? 'underline' : 'none'
                             }}
-                            title="Click to view taken stock history"
+                            title={hasPermission('STOCKS_TAKE_VIEW') ? "Click to view taken stock history" : ""}
                         >
                             {item.quantityInUsage}
                         </td>
                         <td
                             className="col-compact"
-                            onClick={() => onViewEmptyHistory(item)}
+                            onClick={() => hasPermission('STOCKS_EMPTY_VIEW') && onViewEmptyHistory(item)}
                             style={{
-                                cursor: 'pointer',
-                                color: 'var(--color-primary)',
-                                textDecoration: 'underline'
+                                cursor: hasPermission('STOCKS_EMPTY_VIEW') ? 'pointer' : 'default',
+                                color: hasPermission('STOCKS_EMPTY_VIEW') ? 'var(--color-primary)' : 'inherit',
+                                textDecoration: hasPermission('STOCKS_EMPTY_VIEW') ? 'underline' : 'none'
                             }}
-                            title="Click to view empty stock history"
+                            title={hasPermission('STOCKS_EMPTY_VIEW') ? "Click to view empty stock history" : ""}
                         >
                             {item.quantityEmpty || 0}
                         </td>
@@ -54,35 +56,49 @@ export function StockItems({ item, index, onEdit, onDelete, onClone, onTake, onV
 
                 <td className="col-compact">{item.expiryDate}</td>
                 <td className="actions-cell col-actions">
-                    <FaEdit
-                        title="Edit"
-                        className="action-icon edit-icon"
-                        style={{ cursor: "pointer", color: "var(--color-primary)" }}
-                        onClick={() => onEdit(item)}
-                    />
+                    <div className="action-icons-group">
+                        {hasPermission('STOCKS_UPDATE') && (
+                            <FaEdit
+                                title="Edit"
+                                className="action-icon edit-icon"
+                                style={{ cursor: "pointer", color: "var(--color-primary)" }}
+                                onClick={() => onEdit(item)}
+                            />
+                        )}
 
-                    <FaTrash
-                        title="Delete"
-                        className="action-icon delete-icon"
-                        style={{ cursor: "pointer", color: "var(--color-danger)" }}
-                        onClick={() => onDelete()}
-                    />
+                        {hasPermission('STOCKS_DELETE') && (
+                            <FaTrash
+                                title="Delete"
+                                className="action-icon delete-icon"
+                                style={{ cursor: "pointer", color: "var(--color-danger)" }}
+                                onClick={() => onDelete()}
+                            />
+                        )}
 
-                    <FaClone
-                        title="Clone"
-                        className="action-icon clone-icon"
-                        style={{ cursor: "pointer", color: "var(--color-success)" }}
-                        onClick={() => onClone(item)}
-                    />
+                        {hasPermission('STOCKS_CLONE') && (
+                            <FaClone
+                                title="Clone"
+                                className="action-icon clone-icon"
+                                style={{ cursor: "pointer", color: "var(--color-success)" }}
+                                onClick={() => onClone(item)}
+                            />
+                        )}
+                    </div>
 
                     {/* Show Take button only for non-Retail locations */}
-                    {!isRetail && <button className="table-btn table-btn-primary" onClick={() => onTake(item)}>Take</button>}
+                    {!isRetail && hasPermission('STOCKS_TAKE_CREATE') && (
+                        <button className="table-btn table-btn-primary" onClick={() => onTake(item)}>Take</button>
+                    )}
 
                     {/* Show Sell button only for Retail locations */}
-                    {isRetail && <button className="table-btn table-btn-success" onClick={() => onSell(item)}>Sell</button>}
+                    {isRetail && hasPermission('STOCKS_SELL_CREATE') && (
+                        <button className="table-btn table-btn-success" onClick={() => onSell(item)}>Sell</button>
+                    )}
 
                     {/* Show Empty button only for non-Retail locations */}
-                    {!isRetail && <button className="table-btn table-btn-secondary" onClick={() => onEmpty(item)}>Empty</button>}
+                    {!isRetail && hasPermission('STOCKS_EMPTY_CREATE') && (
+                        <button className="table-btn table-btn-secondary" onClick={() => onEmpty(item)}>Empty</button>
+                    )}
                 </td>
             </tr>
         </>

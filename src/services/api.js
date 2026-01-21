@@ -9,6 +9,38 @@ const api = axios.create({
     },
 });
 
+// Add a request interceptor to add the JWT token to the headers
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Add a response interceptor to handle unauthorized errors
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response && [401, 403].includes(error.response.status)) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            // Redirect to login if not already there
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export const stockService = {
     getAllStocks: (location, productName, batchNumber, page = 0, size = 10) =>
         api.get('/stocks', { params: { location, productName, batchNumber, page, size } }),
@@ -40,6 +72,12 @@ export const soldStockService = {
     sellStock: (data) => api.post('/sold-stocks', data),
     updateSoldStock: (id, data) => api.put(`/sold-stocks/${id}`, data),
     deleteSoldStock: (id) => api.delete(`/sold-stocks/${id}`),
+};
+
+export const roleService = {
+    getAllRoles: () => api.get('/roles'),
+    getAllPermissions: () => api.get('/roles/permissions'),
+    updateRolePermissions: (roleId, permissions) => api.put(`/roles/${roleId}/permissions`, permissions),
 };
 
 export default api;
