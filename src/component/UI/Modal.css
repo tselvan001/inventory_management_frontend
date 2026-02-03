@@ -25,6 +25,12 @@
     animation: slideIn 0.3s ease-out;
 }
 
+.modal-content {
+    width: 100%;
+    display: block;
+    max-width: none !important;
+}
+
 .modal-sm {
     max-width: 400px;
 }
@@ -71,4 +77,23 @@
 
 .modal-close:hover {
     color: var(--color-text-main);
+}
+
+/* Light Mode Modal Styles */
+:root[data-theme="light"] .modal-overlay {
+    background-color: rgba(30, 27, 75, 0.4);
+}
+
+:root[data-theme="light"] .modal {
+    background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
+    border: 1px solid rgba(196, 181, 253, 0.4);
+    box-shadow: 0 25px 50px -12px rgba(124, 58, 237, 0.25);
+}
+
+:root[data-theme="light"] .modal-close {
+    color: #9ca3af;
+}
+
+:root[data-theme="light"] .modal-close:hover {
+    color: #7c3aed;
 }

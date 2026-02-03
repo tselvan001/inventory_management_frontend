@@ -15,7 +15,7 @@ export function EmptyStockForm({ record, productName, onSave, onCancel }) {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: name === 'emptyQuantity' ? (value === '' ? '' : Number(value)) : value
         }));
     };
 
@@ -47,20 +47,29 @@ export function EmptyStockForm({ record, productName, onSave, onCancel }) {
         });
     };
 
+    const available = record.remainingQuantity || 0;
+    const newQuantity = formData.emptyQuantity && !isNaN(formData.emptyQuantity) ? available - Number(formData.emptyQuantity) : available;
+
+
+
     return (
         <form onSubmit={handleSubmit} className="stock-form">
-            <div className="stock-summary-card">
+            <div className="stock-summary-card cols-4">
                 <div className="summary-item">
                     <span className="summary-label">Product Name</span>
                     <span className="summary-value highlight">{productName}</span>
                 </div>
                 <div className="summary-item">
-                    <span className="summary-label">Quantity Taken</span>
-                    <span className="summary-value">{record.takenQuantity}</span>
-                </div>
-                <div className="summary-item">
                     <span className="summary-label">Taken Date</span>
                     <span className="summary-value">{record.dateTaken}</span>
+                </div>
+                <div className="summary-item">
+                    <span className="summary-label">Current Stock</span>
+                    <span className="summary-value">{available}</span>
+                </div>
+                <div className="summary-item">
+                    <span className="summary-label">New Stock</span>
+                    <span className="summary-value">{newQuantity}</span>
                 </div>
             </div>
 
@@ -78,7 +87,7 @@ export function EmptyStockForm({ record, productName, onSave, onCancel }) {
             </div>
 
             <div className="form-group">
-                <label htmlFor="emptyQuantity">Empty Quantity</label>
+                <label htmlFor="emptyQuantity" className="form-label">Empty Quantity</label>
                 <input
                     type="number"
                     id="emptyQuantity"
@@ -86,10 +95,11 @@ export function EmptyStockForm({ record, productName, onSave, onCancel }) {
                     value={formData.emptyQuantity}
                     onChange={handleChange}
                     min="1"
-                    max={record.takenQuantity}
+                    max={record.remainingQuantity}
                     className="form-control"
                     required
                 />
+
             </div>
 
             <div className="form-group">

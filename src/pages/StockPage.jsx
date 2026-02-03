@@ -4,25 +4,22 @@ import { Stock } from '../component/Stock.jsx';
 import { useSearchParams } from 'react-router-dom';
 import { Modal } from '../component/UI/Modal.jsx';
 import { Button } from '../component/Button.jsx';
-import { stockService } from '../services/api.js';
+import { stockService, dashboardService } from '../services/api.js';
+import { useAuth } from '../context/AuthContext';
 import './StockPage.css';
+import { Card } from '../component/UI/Card';
+import { Breadcrumb } from '../component/UI/Breadcrumb';
+import { Toggle } from '../component/UI/Toggle';
+import { IoSearch } from 'react-icons/io5';
+import { useToast } from '../context/ToastContext';
 
 export function StockPage() {
     const [searchParams] = useSearchParams();
-    const location = searchParams.get("location");
+    const locationId = searchParams.get("locationId");
+    const { user, hasPermission } = useAuth();
+    const { error: toastError, success: toastSuccess } = useToast();
 
-    const locationMapping = {
-        'retail': 'Retail',
-        'pantry': 'Pantry',
-        'salon_products_in_pantry': 'Salon Products in Pantry',
-        'colours': 'Colours',
-        'men_hairwash': 'Men Hairwash',
-        'men_facial_room': 'Men Facial Room',
-        'nail_art': 'Nail Art',
-        'bridal': 'Bridal'
-    };
-
-    const displayName = locationMapping[location] || location || 'Stock';
+    const [currentLocation, setCurrentLocation] = useState(null);
     const [showAddStockForm, setShowAddStockForm] = useState(false);
     const [stockData, setStockData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -35,20 +32,33 @@ export function StockPage() {
     // Filter states
     const [filterProductName, setFilterProductName] = useState("");
     const [filterBatchNumber, setFilterBatchNumber] = useState("");
+    const [showSoldStocks, setShowSoldStocks] = useState(false);
 
     useEffect(() => {
-        fetchStocks(location, filterProductName, filterBatchNumber);
-    }, [location, filterProductName, filterBatchNumber]);
+        // Fetch current location info
+        if (locationId) {
+            dashboardService.getLocations().then(res => {
+                const loc = res.data.find(l => l.id === parseInt(locationId));
+                setCurrentLocation(loc);
+            }).catch(console.error);
+        }
+    }, [locationId]);
 
-    const fetchStocks = async (loc, productName, batchNumber) => {
+    useEffect(() => {
+        fetchStocks(locationId, filterProductName, filterBatchNumber, showSoldStocks);
+    }, [locationId, filterProductName, filterBatchNumber, showSoldStocks]);
+
+    const fetchStocks = async (locId, productName, batchNumber, isSold) => {
         try {
             setLoading(true);
-            const response = await stockService.getAllStocks(loc, productName, batchNumber, 0, 1000); // Fetch first 1000 items
-            setStockData(response.data?.content || []);
+            const response = await stockService.getAllStocks(locId, productName, batchNumber, 0, 1000, isSold);
+            setStockData(response.data?.content || response.data || []);
             setError(null);
         } catch (err) {
             console.error("Error fetching stocks:", err);
-            setError("Failed to load stocks. Please ensure the backend is running.");
+            if (!err.response || ![401, 403].includes(err.response.status)) {
+                setError("Failed to load stocks. Please ensure the backend is running.");
+            }
         } finally {
             setLoading(false);
         }
@@ -64,63 +74,104 @@ export function StockPage() {
         try {
             const stockToSave = {
                 ...newStock,
-                location: location // Map current page location to stock item
+                locationId: parseInt(locationId)
             };
             await stockService.createStock(stockToSave);
-            await fetchStocks(location, filterProductName, filterBatchNumber); // Refresh list with current filters
+            await fetchStocks(locationId, filterProductName, filterBatchNumber);
+            toastSuccess("Stock added successfully!");
             onClose();
         } catch (err) {
-            alert(err.response?.data?.error || "Error saving stock");
+            if (!err.response || ![401, 403].includes(err.response.status)) {
+                toastError(err.response?.data?.error || "Error saving stock");
+            }
         }
     }
 
     async function onEdit(updatedStock) {
         try {
             await stockService.updateStock(updatedStock.id, updatedStock);
-            await fetchStocks(location, filterProductName, filterBatchNumber); // Refresh list with current filters
+            await fetchStocks(locationId, filterProductName, filterBatchNumber);
+            toastSuccess("Stock updated successfully!");
             onClose();
         } catch (err) {
-            alert(err.response?.data?.error || "Error updating stock");
+            if (!err.response || ![401, 403].includes(err.response.status)) {
+                toastError(err.response?.data?.error || "Error updating stock");
+            }
         }
     }
 
+    const displayName = currentLocation?.name || 'Stock';
+    const isRetail = currentLocation?.type === 'RETAIL';
+    const toggleLabel = isRetail ? "Show Sold" : "Show Emptied";
+
     return (
-        <div>
-            <div className={`stock-page-header ${(!stockData || stockData.length === 0) ? 'header-empty' : ''}`}>
-                <div className="header-left">
-                    <h1 className="stock-page-title">{displayName}</h1>
-                </div>
-                <div className="header-right">
-                    <div className="filter-bar">
-                        <input
-                            type="text"
-                            placeholder="Filter by Product..."
-                            value={filterProductName}
-                            onChange={(e) => setFilterProductName(e.target.value)}
-                            className="filter-input"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Filter by Batch No..."
-                            value={filterBatchNumber}
-                            onChange={(e) => setFilterBatchNumber(e.target.value)}
-                            className="filter-input"
+        <div className="stock-page-container">
+            <Breadcrumb items={[
+                { label: 'Dashboard', to: '/' },
+                { label: displayName }
+            ]} />
+
+            <Card>
+                <div className={`stock-page-header ${(!stockData || stockData.length === 0) ? 'header-empty' : ''}`}>
+                    <div className="header-top">
+                        <h1 className="stock-page-title">{displayName}</h1>
+                        {hasPermission('STOCKS_CREATE') && <Button onClick={() => setShowAddStockForm(true)} name="Add Stock" variant="primary" />}
+                    </div>
+                    <div className="header-bottom">
+                        <div className="search-input-wrapper">
+                            <IoSearch className="search-icon" />
+                            <input
+                                type="text"
+                                placeholder="Filter by Product..."
+                                value={filterProductName}
+                                onChange={(e) => setFilterProductName(e.target.value)}
+                                className="search-input"
+                            />
+                        </div>
+                        <div className="search-input-wrapper">
+                            <IoSearch className="search-icon" />
+                            <input
+                                type="text"
+                                placeholder="Filter by Batch No..."
+                                value={filterBatchNumber}
+                                onChange={(e) => setFilterBatchNumber(e.target.value)}
+                                className="search-input"
+                            />
+                        </div>
+                        <Toggle
+                            label={toggleLabel}
+                            checked={showSoldStocks}
+                            onChange={setShowSoldStocks}
                         />
                     </div>
-                    <Button onClick={() => setShowAddStockForm(true)} name="Add Stock" variant="primary" />
                 </div>
-            </div>
 
-            {loading && <div className="loading">Loading stocks...</div>}
-            {error && <div className="error-message">{error}</div>}
+                {loading ? (
+                    <div className="loading">Loading stocks...</div>
+                ) : (
+                    <>
+                        {error && <div className="error-message">{error}</div>}
+                        <StockTable
+                            stockData={stockData}
+                            setStockData={setStockData}
+                            refreshData={() => fetchStocks(locationId, filterProductName, filterBatchNumber, showSoldStocks)}
+                            setShowAddStockForm={setShowAddStockForm}
+                            setFormData={setFormData}
+                            setIsEdit={setIsEdit}
+                            location={currentLocation}
+                        />
+                    </>
+                )}
+            </Card>
 
             <Modal
                 isOpen={showAddStockForm}
                 onClose={onClose}
                 title={isEdit ? `Edit ${displayName} Stock` : `Add ${displayName} Stock`}
+                size="lg"
             >
                 <Stock
-                    location={location}
+                    location={currentLocation}
                     onSave={onSave}
                     onClose={onClose}
                     onEdit={onEdit}
@@ -128,18 +179,6 @@ export function StockPage() {
                     isEdit={isEdit}
                 />
             </Modal>
-
-            <div style={{ opacity: loading ? 0.5 : 1 }}>
-                <StockTable
-                    stockData={stockData}
-                    setStockData={setStockData}
-                    refreshData={() => fetchStocks(location, filterProductName, filterBatchNumber)}
-                    setShowAddStockForm={setShowAddStockForm}
-                    setFormData={setFormData}
-                    setIsEdit={setIsEdit}
-                    location={location}
-                />
-            </div>
         </div>
     );
 }

@@ -8,10 +8,15 @@ import { EmptyStockForm } from "./EmptyStockForm.jsx";
 import { EmptyStockHistory } from "./EmptyStockHistory.jsx";
 import { SellStock } from "./SellStock.jsx";
 import { SoldStockHistory } from "./SoldStockHistory.jsx";
+import { EditTakenStockForm } from "./EditTakenStockForm.jsx";
+import { EditEmptyStockForm } from "./EditEmptyStockForm.jsx";
 import { stockService, takenStockService, emptyStockService, soldStockService } from "../services/api.js";
 import './StockTable.css';
+import { EmptyState } from './UI/EmptyState';
+import { Skeleton } from './UI/Skeleton';
+import { useToast } from '../context/ToastContext';
 
-export function StockTable({ stockData, setStockData, refreshData, setShowAddStockForm, setFormData, setIsEdit, location }) {
+export function StockTable({ stockData, setStockData, refreshData, setShowAddStockForm, setFormData, setIsEdit, location, loading }) {
     const [showTakeStockForm, setShowTakeStockForm] = useState(false);
     const [takingItem, setTakingItem] = useState(null);
     const [takenStockRecords, setTakenStockRecords] = useState([]);
@@ -27,13 +32,23 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
     const [showEmptyHistoryModal, setShowEmptyHistoryModal] = useState(false);
     const [selectedItemForEmptyHistory, setSelectedItemForEmptyHistory] = useState(null);
 
+    const [showEditTakenModal, setShowEditTakenModal] = useState(false);
+    const [selectedTakenRecordForEdit, setSelectedTakenRecordForEdit] = useState(null);
+
+    const [showEditEmptyModal, setShowEditEmptyModal] = useState(false);
+    const [selectedEmptyRecordForEdit, setSelectedEmptyRecordForEdit] = useState(null);
+
     // Sell Stock States
     const [showSellModal, setShowSellModal] = useState(false);
     const [selectedItemForSell, setSelectedItemForSell] = useState(null);
     const [showSoldHistoryModal, setShowSoldHistoryModal] = useState(false);
     const [selectedItemForSoldHistory, setSelectedItemForSoldHistory] = useState(null);
 
+    const [showEditSoldModal, setShowEditSoldModal] = useState(false);
+    const [selectedSoldRecordForEdit, setSelectedSoldRecordForEdit] = useState(null);
+
     const [loadingHistory, setLoadingHistory] = useState(false);
+    const { success, error } = useToast();
 
     function handleEdit(item) {
         setFormData(item);
@@ -42,12 +57,12 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
     }
 
     async function handleDelete(id) {
-        if (!window.confirm("Are you sure you want to delete this stock?")) return;
         try {
             await stockService.deleteStock(id);
             refreshData();
+            success("Stock deleted successfully");
         } catch (err) {
-            alert(err.response?.data?.error || "Error deleting stock");
+            error(err.response?.data?.error || "Error deleting stock");
         }
     }
 
@@ -74,20 +89,20 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
             });
             setShowTakeStockForm(false);
             refreshData();
+            success("Stock processed successfully");
         } catch (err) {
-            alert(err.response?.data?.error || "Error taking stock");
+            error(err.response?.data?.error || "Error taking stock");
         }
     }
 
     async function handleViewTakenHistory(item) {
         setSelectedItemForHistory(item);
-        setLoadingHistory(true);
         try {
             const response = await takenStockService.getTakenStocksByStockId(item.id);
             setTakenStockRecords(response.data || []);
             setShowHistoryModal(true);
         } catch (err) {
-            alert("Error fetching history");
+            error("Error fetching history");
         } finally {
             setLoadingHistory(false);
         }
@@ -100,7 +115,7 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
             setTakenStockRecords(response.data || []);
             setShowEmptyModal(true);
         } catch (err) {
-            alert("Error fetching taken stocks");
+            error("Error fetching taken stocks");
         }
     }
 
@@ -111,7 +126,7 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
             setEmptyStockRecords(response.data || []);
             setShowEmptyHistoryModal(true);
         } catch (err) {
-            alert("Error fetching empty history");
+            error("Error fetching empty history");
         }
     }
 
@@ -132,8 +147,9 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
             setShowEmptyFormModal(false);
             setShowEmptyModal(false);
             refreshData();
+            success("Empty stock recorded");
         } catch (err) {
-            alert(err.response?.data?.error || "Error recording empty stock");
+            error(err.response?.data?.error || "Error recording empty stock");
         }
     }
 
@@ -144,18 +160,56 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
 
     async function handleSaveSell(soldRecord) {
         try {
-            await soldStockService.sellStock({
-                stockId: soldRecord.stockId,
-                customerName: soldRecord.customerName,
-                mobileNumber: soldRecord.mobileNumber,
-                quantity: soldRecord.quantity,
-                sellingPrice: soldRecord.sellingPrice
-            });
-            setShowSellModal(false);
+            if (soldRecord.id) {
+                await soldStockService.updateSoldStock(soldRecord.id, {
+                    stockId: soldRecord.stockId,
+                    customerName: soldRecord.customerName,
+                    mobileNumber: soldRecord.mobileNumber,
+                    quantity: soldRecord.quantity,
+                    sellingPrice: soldRecord.sellingPrice,
+                    dateSold: soldRecord.dateSold
+                });
+                setShowEditSoldModal(false);
+                // Refresh history if it's open
+                if (selectedItemForSoldHistory) {
+                    handleViewSoldHistory(selectedItemForSoldHistory);
+                }
+            } else {
+                await soldStockService.sellStock({
+                    stockId: soldRecord.stockId,
+                    customerName: soldRecord.customerName,
+                    mobileNumber: soldRecord.mobileNumber,
+                    quantity: soldRecord.quantity,
+                    sellingPrice: soldRecord.sellingPrice,
+                    dateSold: soldRecord.dateSold
+                });
+                setShowSellModal(false);
+            }
             refreshData();
+            success("Sale recorded successfully");
         } catch (err) {
-            alert(err.response?.data?.error || "Error selling stock");
+            error(err.response?.data?.error || "Error saving sale");
         }
+    }
+
+    async function handleDeleteSoldStock(id) {
+        // Confirmation is handled in SoldStockHistory component
+        try {
+            await soldStockService.deleteSoldStock(id);
+            refreshData();
+            // Refresh history if it's open
+            if (selectedItemForSoldHistory) {
+                handleViewSoldHistory(selectedItemForSoldHistory);
+            }
+            success("Sale deleted");
+        } catch (err) {
+            error(err.response?.data?.error || "Error deleting sale");
+        }
+    }
+
+    function handleEditSoldStock(record) {
+        setSelectedSoldRecordForEdit(record);
+        setShowEditSoldModal(true);
     }
 
     async function handleViewSoldHistory(item) {
@@ -165,7 +219,81 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
             setSoldStockRecords(response.data || []);
             setShowSoldHistoryModal(true);
         } catch (err) {
-            alert("Error fetching sales history");
+            error("Error fetching sales history");
+        }
+    }
+
+    // Handlers for Taken Stock Edit/Delete
+    function handleEditTaken(record) {
+        setSelectedTakenRecordForEdit(record);
+        setShowEditTakenModal(true);
+    }
+
+    async function handleDeleteTaken(id) {
+        try {
+            await takenStockService.deleteTakenStock(id);
+            // Refresh history
+            if (selectedItemForHistory) {
+                const response = await takenStockService.getTakenStocksByStockId(selectedItemForHistory.id);
+                setTakenStockRecords(response.data || []);
+            }
+            refreshData();
+            success("Record deleted");
+        } catch (err) {
+            error(err.response?.data?.error || "Error deleting record");
+        }
+    }
+
+    async function handleSaveTakenEdit(updatedRecord) {
+        try {
+            await takenStockService.updateTakenStock(updatedRecord.id, updatedRecord);
+            setShowEditTakenModal(false);
+            // Refresh history
+            if (selectedItemForHistory) {
+                const response = await takenStockService.getTakenStocksByStockId(selectedItemForHistory.id);
+                setTakenStockRecords(response.data || []);
+            }
+            refreshData();
+            success("Record updated");
+        } catch (err) {
+            error(err.response?.data?.error || "Error updating record");
+        }
+    }
+
+    // Handlers for Empty Stock Edit/Delete
+    function handleEditEmpty(record) {
+        setSelectedEmptyRecordForEdit(record);
+        setShowEditEmptyModal(true);
+    }
+
+    async function handleDeleteEmpty(id) {
+        try {
+            await emptyStockService.deleteEmptyStock(id);
+            // Refresh history
+            if (selectedItemForEmptyHistory) {
+                const response = await emptyStockService.getEmptyStocksByStockId(selectedItemForEmptyHistory.id);
+                setEmptyStockRecords(response.data || []);
+            }
+            refreshData();
+            success("Record deleted");
+        } catch (err) {
+            error(err.response?.data?.error || "Error deleting record");
+        }
+    }
+
+    async function handleSaveEmptyEdit(updatedRecord) {
+        try {
+            await emptyStockService.updateEmptyStock(updatedRecord.id, updatedRecord);
+            setShowEditEmptyModal(false);
+            // Refresh history
+            if (selectedItemForEmptyHistory) {
+                const response = await emptyStockService.getEmptyStocksByStockId(selectedItemForEmptyHistory.id);
+                setEmptyStockRecords(response.data || []);
+            }
+            refreshData();
+            success("Record updated");
+        } catch (err) {
+            error(err.response?.data?.error || "Error updating record");
         }
     }
 
@@ -190,12 +318,29 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
                 <Modal
                     isOpen={showHistoryModal}
                     onClose={() => setShowHistoryModal(false)}
-                    title={'Taken Stock History - ' + selectedItemForHistory.product}
+                    title={`Taken History - ${selectedItemForHistory?.product}`}
                     size="large"
                 >
                     <TakenStockHistory
                         takenRecords={takenStockRecords}
-                        productName={selectedItemForHistory.product}
+                        productName={selectedItemForHistory?.product}
+                        onEdit={handleEditTaken}
+                        onDelete={handleDeleteTaken}
+                    />
+                </Modal>
+            )}
+
+            {showEditTakenModal && selectedTakenRecordForEdit && (
+                <Modal
+                    isOpen={showEditTakenModal}
+                    onClose={() => setShowEditTakenModal(false)}
+                    title="Edit Taken Stock"
+                >
+                    <EditTakenStockForm
+                        record={selectedTakenRecordForEdit}
+                        stock={selectedItemForHistory}
+                        onSave={handleSaveTakenEdit}
+                        onCancel={() => setShowEditTakenModal(false)}
                     />
                 </Modal>
             )}
@@ -240,12 +385,29 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
                 <Modal
                     isOpen={showEmptyHistoryModal}
                     onClose={() => setShowEmptyHistoryModal(false)}
-                    title={'Empty Stock History - ' + selectedItemForEmptyHistory.product}
+                    title={`Empty History - ${selectedItemForEmptyHistory?.product}`}
                     size="large"
                 >
                     <EmptyStockHistory
                         emptyRecords={emptyStockRecords}
-                        productName={selectedItemForEmptyHistory.product}
+                        productName={selectedItemForEmptyHistory?.product}
+                        onEdit={handleEditEmpty}
+                        onDelete={handleDeleteEmpty}
+                    />
+                </Modal>
+            )}
+
+            {showEditEmptyModal && selectedEmptyRecordForEdit && (
+                <Modal
+                    isOpen={showEditEmptyModal}
+                    onClose={() => setShowEditEmptyModal(false)}
+                    title="Edit Empty Stock"
+                >
+                    <EditEmptyStockForm
+                        record={selectedEmptyRecordForEdit}
+                        productName={selectedItemForEmptyHistory?.product}
+                        onSave={handleSaveEmptyEdit}
+                        onCancel={() => setShowEditEmptyModal(false)}
                     />
                 </Modal>
             )}
@@ -274,6 +436,23 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
                     <SoldStockHistory
                         soldRecords={soldStockRecords}
                         productName={selectedItemForSoldHistory.product}
+                        onEdit={handleEditSoldStock}
+                        onDelete={handleDeleteSoldStock}
+                    />
+                </Modal>
+            )}
+
+            {showEditSoldModal && selectedSoldRecordForEdit && selectedItemForSoldHistory && (
+                <Modal
+                    isOpen={showEditSoldModal}
+                    onClose={() => setShowEditSoldModal(false)}
+                    title={'Edit Sale - ' + selectedItemForSoldHistory.product}
+                >
+                    <SellStock
+                        stock={selectedItemForSoldHistory}
+                        initialData={selectedSoldRecordForEdit}
+                        onSellStock={handleSaveSell}
+                        onCancel={() => setShowEditSoldModal(false)}
                     />
                 </Modal>
             )}
@@ -281,16 +460,17 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
             <table className="stock-table">
                 <thead>
                     <tr>
-                        <th className="col-compact">S.No</th>
+                        <th className="col-compact text-center">S.No</th>
                         <th className="text-left-align col-product">Product</th>
                         <th className="text-left-align col-batch">Batch No</th>
-                        <th className="col-compact">Stock Qty</th>
-                        {location === 'retail' ? (
-                            <th className="col-compact">Sold Qty</th>
+                        <th className="col-compact text-right">Total Qty</th>
+                        <th className="col-compact text-right">Available Qty</th>
+                        {location?.type === 'RETAIL' ? (
+                            <th className="col-compact text-right">Sold Qty</th>
                         ) : (
                             <>
-                                <th className="col-compact">Taken Qty</th>
-                                <th className="col-compact">Empty Qty</th>
+                                <th className="col-compact text-right">Taken Qty</th>
+                                <th className="col-compact text-right">Empty Qty</th>
                             </>
                         )}
                         <th className="col-compact">Exp Date</th>
@@ -300,7 +480,24 @@ export function StockTable({ stockData, setStockData, refreshData, setShowAddSto
                 <tbody>
                     {!stockData || stockData.length === 0 ? (
                         <tr>
-                            <td colSpan="11" style={{ textAlign: 'center', padding: '2rem' }}>No items found. Add some stock!</td>
+                            <td colSpan="11">
+                                <EmptyState
+                                    title="No stocks found"
+                                    message="Add your first stock item to get started."
+                                    action={
+                                        <button
+                                            className="btn-primary"
+                                            onClick={() => {
+                                                setFormData(null);
+                                                setIsEdit(false);
+                                                setShowAddStockForm(true);
+                                            }}
+                                        >
+                                            Add Stock
+                                        </button>
+                                    }
+                                />
+                            </td>
                         </tr>
                     ) : (
                         (stockData || []).map(

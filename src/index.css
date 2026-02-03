@@ -44,3 +44,17 @@ a:hover {
   margin: 0 auto;
   padding: 0 var(--space-4);
 }
+
+/* Remove arrows/spinners from number input */
+/* Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

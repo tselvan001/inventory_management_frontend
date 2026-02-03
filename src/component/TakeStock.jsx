@@ -45,10 +45,10 @@ export function TakeStock({ stock, onTakeStock, onCancel }) {
             setTakenQuantity('');
             return;
         }
-        const numVal = parseInt(val);
+        const numVal = Number(val);
         if (numVal < 0) return; // Prevent negative
         if (numVal > currentStock) return; // Prevent > stock
-        setTakenQuantity(val);
+        setTakenQuantity(numVal);
     };
 
     return (
