@@ -73,7 +73,14 @@ export function StockPage() {
     async function onSave(newStock) {
         try {
             const stockToSave = {
-                ...newStock,
+                product: newStock.product,
+                quantityInStock: newStock.quantityInStock,
+                manufacturingDate: newStock.manufacturingDate,
+                expiryDate: newStock.expiryDate,
+                mrpPerUnit: newStock.mrpPerUnit,
+                purchasePricePerUnit: newStock.purchasePricePerUnit,
+                batchNumber: newStock.batchNumber,
+                stockReceivedDate: newStock.stockReceivedDate,
                 locationId: parseInt(locationId)
             };
             await stockService.createStock(stockToSave);
@@ -89,7 +96,18 @@ export function StockPage() {
 
     async function onEdit(updatedStock) {
         try {
-            await stockService.updateStock(updatedStock.id, updatedStock);
+            const stockToUpdate = {
+                product: updatedStock.product,
+                quantityInStock: updatedStock.quantityInStock,
+                manufacturingDate: updatedStock.manufacturingDate,
+                expiryDate: updatedStock.expiryDate,
+                mrpPerUnit: updatedStock.mrpPerUnit,
+                purchasePricePerUnit: updatedStock.purchasePricePerUnit,
+                batchNumber: updatedStock.batchNumber,
+                stockReceivedDate: updatedStock.stockReceivedDate,
+                locationId: parseInt(locationId)
+            };
+            await stockService.updateStock(updatedStock.id, stockToUpdate);
             await fetchStocks(locationId, filterProductName, filterBatchNumber);
             toastSuccess("Stock updated successfully!");
             onClose();

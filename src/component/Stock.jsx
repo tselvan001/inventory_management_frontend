@@ -4,10 +4,8 @@ import './Stock.css';
 
 export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
     const [stockData, setStockData] = useState(stock ? stock : {
-        no: '',
         product: '',
         quantityInStock: '',
-        quantityInUsage: '',
         manufacturingDate: '',
         expiryDate: '',
         mrpPerUnit: '',
@@ -32,10 +30,14 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
     function handleSubmit() {
         if (!validate()) return;
         const newStock = {
-            ...stockData,
+            product: stockData.product,
             quantityInStock: Number(stockData.quantityInStock),
-            mrpPerUnit: Number(stockData.mrpPerUnit),
-            purchasePricePerUnit: Number(stockData.purchasePricePerUnit)
+            manufacturingDate: stockData.manufacturingDate || null,
+            expiryDate: stockData.expiryDate || null,
+            mrpPerUnit: stockData.mrpPerUnit ? Number(stockData.mrpPerUnit) : null,
+            purchasePricePerUnit: stockData.purchasePricePerUnit ? Number(stockData.purchasePricePerUnit) : null,
+            batchNumber: stockData.batchNumber || null,
+            stockReceivedDate: stockData.stockReceivedDate || null
         };
         onSave(newStock);
     }
@@ -43,10 +45,15 @@ export function Stock({ location, onSave, onClose, stock, onEdit, isEdit }) {
     function handleEdit() {
         if (!validate()) return;
         const updatedStock = {
-            ...stockData,
+            id: stockData.id,
+            product: stockData.product,
             quantityInStock: Number(stockData.quantityInStock),
-            mrpPerUnit: Number(stockData.mrpPerUnit),
-            purchasePricePerUnit: Number(stockData.purchasePricePerUnit)
+            manufacturingDate: stockData.manufacturingDate || null,
+            expiryDate: stockData.expiryDate || null,
+            mrpPerUnit: stockData.mrpPerUnit ? Number(stockData.mrpPerUnit) : null,
+            purchasePricePerUnit: stockData.purchasePricePerUnit ? Number(stockData.purchasePricePerUnit) : null,
+            batchNumber: stockData.batchNumber || null,
+            stockReceivedDate: stockData.stockReceivedDate || null
         };
         onEdit(updatedStock);
     }
