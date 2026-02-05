@@ -1,17 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:8080/api';
-
-// Get auth header helper
-const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    };
-};
+import api from './api';
 
 /**
  * Activity Log Service - API calls for activity logs and audit trail
@@ -31,10 +18,7 @@ export const activityLogService = {
         if (filters.page !== undefined) params.append('page', filters.page);
         if (filters.size !== undefined) params.append('size', filters.size);
 
-        const response = await axios.get(
-            `${API_BASE_URL}/activity-logs?${params.toString()}`,
-            getAuthHeader()
-        );
+        const response = await api.get(`/activity-logs?${params.toString()}`);
         return response.data;
     },
 
@@ -42,10 +26,7 @@ export const activityLogService = {
      * Get activity logs for a specific entity
      */
     getEntityActivityLogs: async (entityType, entityId) => {
-        const response = await axios.get(
-            `${API_BASE_URL}/activity-logs/entity/${entityType}/${entityId}`,
-            getAuthHeader()
-        );
+        const response = await api.get(`/activity-logs/entity/${entityType}/${entityId}`);
         return response.data;
     },
 
@@ -53,10 +34,7 @@ export const activityLogService = {
      * Get filter options for dropdowns
      */
     getFilterOptions: async () => {
-        const response = await axios.get(
-            `${API_BASE_URL}/activity-logs/filters`,
-            getAuthHeader()
-        );
+        const response = await api.get('/activity-logs/filters');
         return response.data;
     },
 
@@ -64,10 +42,7 @@ export const activityLogService = {
      * Get all versions of an entity
      */
     getEntityVersions: async (entityType, entityId) => {
-        const response = await axios.get(
-            `${API_BASE_URL}/audit-trail/${entityType}/${entityId}/versions`,
-            getAuthHeader()
-        );
+        const response = await api.get(`/audit-trail/${entityType}/${entityId}/versions`);
         return response.data;
     },
 
@@ -75,10 +50,7 @@ export const activityLogService = {
      * Get entity at a specific revision
      */
     getEntityAtRevision: async (entityType, entityId, revisionNumber) => {
-        const response = await axios.get(
-            `${API_BASE_URL}/audit-trail/${entityType}/${entityId}/versions/${revisionNumber}`,
-            getAuthHeader()
-        );
+        const response = await api.get(`/audit-trail/${entityType}/${entityId}/versions/${revisionNumber}`);
         return response.data;
     },
 
@@ -86,10 +58,7 @@ export const activityLogService = {
      * Compare two versions of an entity
      */
     compareVersions: async (entityType, entityId, rev1, rev2) => {
-        const response = await axios.get(
-            `${API_BASE_URL}/audit-trail/${entityType}/${entityId}/diff?rev1=${rev1}&rev2=${rev2}`,
-            getAuthHeader()
-        );
+        const response = await api.get(`/audit-trail/${entityType}/${entityId}/diff?rev1=${rev1}&rev2=${rev2}`);
         return response.data;
     }
 };

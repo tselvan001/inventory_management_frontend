@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../services/api';
 import './LoginPage.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export function LoginPage() {
     const [username, setUsername] = useState('');
@@ -26,7 +24,7 @@ export function LoginPage() {
         setLoading(true);
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+            const response = await api.post('/auth/login', {
                 username,
                 password
             });
