@@ -33,7 +33,7 @@ export function Navbar() {
                     {user && user.permissions?.includes('MANAGE_LOCATION') && (
                         <Link to="/locations" className={`nav-link ${location.pathname === '/locations' ? 'active' : ''}`}>Manage Locations</Link>
                     )}
-                    {user && (
+                    {user && user.permissions?.includes('REPORT_VIEW') && (
                         <Link to="/activity-logs" className={`nav-link ${location.pathname === '/activity-logs' ? 'active' : ''}`}>Activity Logs</Link>
                     )}
 

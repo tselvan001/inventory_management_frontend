@@ -44,7 +44,7 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/activity-logs" element={
-            <ProtectedRoute>
+            <ProtectedRoute permissions={['REPORT_VIEW']}>
               <ActivityLogPage />
             </ProtectedRoute>
           } />
